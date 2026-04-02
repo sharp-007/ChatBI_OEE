@@ -8,9 +8,11 @@ from backend.app.prompts.nl2sql_prompt import (
     CHART_RECOMMEND_PROMPT,
 )
 
+MAX_HISTORY_ROUNDS = 5
+
 
 class NL2SQLService:
-    """自然语言转SQL核心服务"""
+    """自然语言转SQL核心服务，支持多轮对话记忆"""
 
     def __init__(self):
         self.db_service = DatabaseService()
@@ -26,16 +28,71 @@ class NL2SQLService:
         cleaned = cleaned.strip().rstrip(";") + ";"
         return cleaned
 
-    def text_to_sql(self, question: str) -> str:
-        """将自然语言问题转换为SQL"""
+    @staticmethod
+    def _build_nl2sql_history(conversation_history: list[dict]) -> list[dict]:
+        """将前端对话历史转换为LLM多轮消息格式（仅保留最近N轮）
+
+        每轮包含: 用户问题 + 助手生成的SQL + 查询结果摘要
+        这样LLM能理解上下文中的指代和追问。
+        """
+        rounds = []
+        i = 0
+        while i < len(conversation_history):
+            item = conversation_history[i]
+            if item.get("role") == "user":
+                user_msg = item["content"]
+                assistant_summary = ""
+                if i + 1 < len(conversation_history):
+                    resp = conversation_history[i + 1]
+                    if resp.get("role") == "assistant":
+                        parts = []
+                        if resp.get("sql"):
+                            parts.append(f"生成的SQL: {resp['sql']}")
+                        if resp.get("content"):
+                            parts.append(f"分析结论: {resp['content'][:200]}")
+                        assistant_summary = "\n".join(parts) if parts else resp.get("content", "")
+                        i += 1
+                rounds.append((user_msg, assistant_summary))
+            i += 1
+
+        recent = rounds[-MAX_HISTORY_ROUNDS:]
+
+        messages = []
+        for user_msg, assistant_msg in recent:
+            messages.append({"role": "user", "content": user_msg})
+            if assistant_msg:
+                messages.append({"role": "assistant", "content": assistant_msg})
+
+        return messages
+
+    def text_to_sql(self, question: str,
+                    history: list[dict] | None = None) -> str:
+        """将自然语言问题转换为SQL，支持多轮上下文"""
         system_prompt = NL2SQL_SYSTEM_PROMPT.format(schema=self.schema_info)
-        sql = llm_service.chat(system_prompt, question)
+        sql = llm_service.chat(system_prompt, question, history=history)
         return self._clean_sql(sql)
 
-    def interpret_result(self, question: str, rows: list[dict]) -> str:
-        """对查询结果进行自然语言解读"""
+    def interpret_result(self, question: str, sql: str, rows: list[dict],
+                         conversation_history: list[dict] | None = None) -> str:
+        """对查询结果进行自然语言解读，包含SQL和对话上下文"""
         data_summary = json.dumps(rows[:50], ensure_ascii=False, default=str)
-        user_msg = f"用户问题: {question}\n\n查询结果数据:\n{data_summary}"
+
+        context_parts = []
+        if conversation_history:
+            recent_qa = []
+            for msg in conversation_history[-(MAX_HISTORY_ROUNDS * 2):]:
+                if msg.get("role") == "user":
+                    recent_qa.append(f"用户: {msg['content']}")
+                elif msg.get("role") == "assistant" and msg.get("content"):
+                    recent_qa.append(f"助手: {msg['content'][:150]}")
+            if recent_qa:
+                context_parts.append("对话上下文:\n" + "\n".join(recent_qa))
+
+        user_msg = ""
+        if context_parts:
+            user_msg += "\n".join(context_parts) + "\n\n"
+        user_msg += f"当前用户问题: {question}\n\n执行的SQL:\n{sql}\n\n查询结果数据:\n{data_summary}"
+
         return llm_service.chat(INTERPRET_SYSTEM_PROMPT, user_msg)
 
     def recommend_chart(self, question: str, columns: list[str], rows: list[dict]) -> dict:
@@ -62,9 +119,14 @@ class NL2SQLService:
         cleaned = sql.strip().rstrip(";").strip()
         return cleaned.upper().startswith("SELECT")
 
-    def query(self, question: str) -> dict:
-        """完整的NL2SQL查询流程: 问题 -> SQL -> 执行 -> 解读 -> 图表推荐"""
-        sql = self.text_to_sql(question)
+    def query(self, question: str,
+              conversation_history: list[dict] | None = None) -> dict:
+        """完整的NL2SQL查询流程，支持多轮对话上下文"""
+        llm_history = None
+        if conversation_history:
+            llm_history = self._build_nl2sql_history(conversation_history)
+
+        sql = self.text_to_sql(question, history=llm_history)
 
         if not self._is_valid_sql(sql):
             hint = sql.rstrip(";").strip()
@@ -96,7 +158,8 @@ class NL2SQLService:
                 "data": {"columns": [], "rows": []},
             }
 
-        interpretation = self.interpret_result(question, result["rows"])
+        interpretation = self.interpret_result(question, sql, result["rows"],
+                                                conversation_history=conversation_history)
         chart_config = self.recommend_chart(question, result["columns"], result["rows"])
 
         return {

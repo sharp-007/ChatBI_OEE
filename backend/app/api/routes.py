@@ -6,8 +6,15 @@ from backend.app.services.oee_calculator import OEECalculator
 router = APIRouter()
 
 
+class ConversationMessage(BaseModel):
+    role: str
+    content: str
+    sql: str = ""
+
+
 class ChatRequest(BaseModel):
     question: str
+    conversation_history: list[ConversationMessage] = []
 
 
 class ChatResponse(BaseModel):
@@ -21,8 +28,9 @@ class ChatResponse(BaseModel):
 
 @router.post("/chat", response_model=ChatResponse)
 async def chat_query(request: ChatRequest):
-    """自然语言查询接口"""
-    result = nl2sql_service.query(request.question)
+    """自然语言查询接口，支持多轮对话上下文"""
+    history = [msg.model_dump() for msg in request.conversation_history] if request.conversation_history else None
+    result = nl2sql_service.query(request.question, conversation_history=history)
     return ChatResponse(**result)
 
 

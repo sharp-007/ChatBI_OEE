@@ -10,15 +10,20 @@ class LLMService:
         dashscope.api_key = settings.DASHSCOPE_API_KEY
         self.model = settings.LLM_MODEL
 
-    def chat(self, system_prompt: str, user_message: str) -> str:
-        """调用通义千问进行对话"""
+    def chat(self, system_prompt: str, user_message: str,
+             history: list[dict] | None = None) -> str:
+        """调用通义千问进行对话，支持多轮历史消息"""
+        messages = [{"role": "system", "content": system_prompt}]
+
+        if history:
+            messages.extend(history)
+
+        messages.append({"role": "user", "content": user_message})
+
         try:
             response = Generation.call(
                 model=self.model,
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": user_message},
-                ],
+                messages=messages,
                 result_format="message",
                 temperature=0.1,
                 max_tokens=2000,
