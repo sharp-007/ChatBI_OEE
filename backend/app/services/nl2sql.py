@@ -57,9 +57,32 @@ class NL2SQLService:
 
         return {"chart_type": "table", "x_field": "", "y_field": "", "title": "查询结果"}
 
+    def _is_valid_sql(self, sql: str) -> bool:
+        """判断LLM返回的内容是否为有效SQL"""
+        cleaned = sql.strip().rstrip(";").strip()
+        return cleaned.upper().startswith("SELECT")
+
     def query(self, question: str) -> dict:
         """完整的NL2SQL查询流程: 问题 -> SQL -> 执行 -> 解读 -> 图表推荐"""
         sql = self.text_to_sql(question)
+
+        if not self._is_valid_sql(sql):
+            hint = sql.rstrip(";").strip()
+            fallback = (
+                "您的问题比较宽泛，我无法直接生成查询。您可以试试以下具体问题：\n\n"
+                "- 各车间本月OEE对比情况如何？\n"
+                "- 哪台设备的OEE最需要改进？\n"
+                "- 最近一个月停机时间最长的设备是哪台？\n"
+                "- 各设备的可用率、性能率、质量率排名\n"
+                "- 不良率最高的产品是什么？"
+            )
+            return {
+                "success": True,
+                "sql": "",
+                "interpretation": hint if len(hint) > 10 else fallback,
+                "chart_config": {"chart_type": "table"},
+                "data": {"columns": [], "rows": []},
+            }
 
         result = self.db_service.execute_query(sql)
 
