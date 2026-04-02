@@ -1,4 +1,8 @@
 -- ChatBI OEE 数据库建表脚本
+-- 设置连接字符集
+SET NAMES utf8mb4;
+SET CHARACTER SET utf8mb4;
+
 -- 创建数据库
 CREATE DATABASE IF NOT EXISTS chatbi_oee
     DEFAULT CHARACTER SET utf8mb4
@@ -21,7 +25,7 @@ CREATE TABLE IF NOT EXISTS equipment (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     INDEX idx_workshop (workshop),
     INDEX idx_production_line (production_line)
-) COMMENT '设备主数据表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='设备主数据表';
 
 -- ============================================
 -- 2. 产品主数据表
@@ -31,9 +35,9 @@ CREATE TABLE IF NOT EXISTS product (
     product_code VARCHAR(50) NOT NULL UNIQUE COMMENT '产品编号',
     product_name VARCHAR(100) NOT NULL COMMENT '产品名称',
     product_category VARCHAR(50) COMMENT '产品类别',
-    unit VARCHAR(20) DEFAULT '件' COMMENT '单位',
+    unit VARCHAR(20) NOT NULL DEFAULT '件' COMMENT '单位',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-) COMMENT '产品主数据表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='产品主数据表';
 
 -- ============================================
 -- 3. 生产计划表
@@ -51,7 +55,7 @@ CREATE TABLE IF NOT EXISTS production_plan (
     FOREIGN KEY (product_id) REFERENCES product(id),
     INDEX idx_plan_date (plan_date),
     INDEX idx_equipment (equipment_id)
-) COMMENT '生产计划表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='生产计划表';
 
 -- ============================================
 -- 4. 生产记录表
@@ -73,7 +77,7 @@ CREATE TABLE IF NOT EXISTS production_record (
     FOREIGN KEY (product_id) REFERENCES product(id),
     INDEX idx_record_date (record_date),
     INDEX idx_equipment_date (equipment_id, record_date)
-) COMMENT '生产记录表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='生产记录表';
 
 -- ============================================
 -- 5. 停机记录表
@@ -94,7 +98,7 @@ CREATE TABLE IF NOT EXISTS downtime_record (
     INDEX idx_record_date (record_date),
     INDEX idx_equipment (equipment_id),
     INDEX idx_downtime_type (downtime_type)
-) COMMENT '停机记录表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='停机记录表';
 
 -- ============================================
 -- 6. OEE 日汇总视图

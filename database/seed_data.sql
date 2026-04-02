@@ -1,4 +1,6 @@
 -- ChatBI OEE 演示数据填充脚本
+SET NAMES utf8mb4;
+SET CHARACTER SET utf8mb4;
 USE chatbi_oee;
 
 -- ============================================

@@ -58,11 +58,26 @@ ChatBI_OEE/
 
 ### 1. 环境准备
 
-- Python 3.10+
+- Conda（Anaconda 或 Miniconda）
 - MySQL 8.0+
 - 通义千问 API Key（[申请地址](https://dashscope.console.aliyun.com/)）
 
-### 2. 配置环境变量
+### 2. 创建 Conda 虚拟环境
+
+```powershell
+conda create -n chatbi python=3.10 -y
+conda activate chatbi
+```
+
+### 3. 配置环境变量
+
+Windows PowerShell:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+Linux / macOS:
 
 ```bash
 cp .env.example .env
@@ -79,35 +94,43 @@ DB_PASSWORD=your_password_here
 DB_NAME=chatbi_oee
 ```
 
-### 3. 初始化数据库
+### 4. 初始化数据库
 
-登录 MySQL 后依次执行：
+进入 MySQL 交互终端：
 
-```bash
-mysql -u root -p < database/schema.sql
-mysql -u root -p < database/seed_data.sql
+```powershell
+mysql -u root -p
 ```
 
-这将创建数据库、表结构，并填充 2026年1-3月的模拟生产数据（10台设备、8种产品）。
+在 MySQL 终端中依次执行（请将路径替换为你的实际项目路径）：
 
-### 4. 安装依赖
+```sql
+source E:/AI/AI经典实践项目/Github/工业4.0/ChatBI_OEE/database/schema.sql;
+source E:/AI/AI经典实践项目/Github/工业4.0/ChatBI_OEE/database/seed_data.sql;
+```
 
-```bash
+> **注意**：`seed_data.sql` 中使用了存储过程和 `DELIMITER`，必须在 MySQL 交互终端中执行，不能通过管道或重定向方式导入。
+
+执行完成后，数据库将包含 2026年1-3月的模拟生产数据（10台设备、8种产品）。
+
+### 5. 安装依赖
+
+```powershell
 pip install -r backend/requirements.txt
 pip install -r frontend/requirements.txt
 ```
 
-### 5. 启动后端服务
+### 6. 启动后端服务
 
-```bash
+```powershell
 python -m backend.app.main
 ```
 
-后端API运行在 `http://localhost:8000`，API文档访问 `http://localhost:8000/docs`
+后端 API 运行在 `http://localhost:8000`，API 文档访问 `http://localhost:8000/docs`
 
-### 6. 启动前端
+### 7. 启动前端（新开一个终端窗口）
 
-```bash
+```powershell
 streamlit run frontend/app.py
 ```
 
