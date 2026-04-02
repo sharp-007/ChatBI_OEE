@@ -106,10 +106,10 @@ class DatabaseService:
    - end_time: DATETIME, 结束时间
    - duration_minutes: DECIMAL(10,2), 停机时长(分钟)
 
-5. oee_daily (OEE日汇总视图, 基于 production_record 和 equipment 计算)
+5. oee_daily (OEE日汇总视图, 已JOIN了 equipment 和 product 表, 直接查询即可, 无需再JOIN这两张表)
    - record_date: DATE, 生产日期
    - shift: VARCHAR(20), 班次
-   - equipment_id: INT, 设备ID
+   - equipment_id: INT, 设备ID (可用于子查询关联 equipment 表获取 equipment_type)
    - equipment_code: VARCHAR(50), 设备编号
    - equipment_name: VARCHAR(100), 设备名称
    - workshop: VARCHAR(50), 车间
