@@ -17,9 +17,12 @@ class NL2SQLService:
         self.schema_info = DatabaseService.get_schema_info()
 
     def _clean_sql(self, raw: str) -> str:
-        """清理LLM返回的SQL，去除markdown代码块等格式"""
+        """清理LLM返回的SQL，去除markdown代码块等格式，修正非标准字符"""
         cleaned = re.sub(r"```sql\s*", "", raw)
         cleaned = re.sub(r"```\s*", "", cleaned)
+        cleaned = cleaned.replace("≥", ">=").replace("≤", "<=").replace("≠", "!=")
+        cleaned = cleaned.replace("\u2018", "'").replace("\u2019", "'")
+        cleaned = cleaned.replace("\u201c", "'").replace("\u201d", "'")
         cleaned = cleaned.strip().rstrip(";") + ";"
         return cleaned
 
