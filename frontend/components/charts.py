@@ -108,10 +108,10 @@ def _render_gauge(df: pd.DataFrame, y_field: str, title: str):
             "axis": {"range": [0, 100]},
             "bar": {"color": "#3498db"},
             "steps": [
-                {"range": [0, 60], "color": "#e74c3c30"},
-                {"range": [60, 75], "color": "#f39c1230"},
-                {"range": [75, 85], "color": "#f1c40f30"},
-                {"range": [85, 100], "color": "#2ecc7130"},
+                {"range": [0, 60], "color": "rgba(231,76,60,0.19)"},
+                {"range": [60, 75], "color": "rgba(243,156,18,0.19)"},
+                {"range": [75, 85], "color": "rgba(241,196,15,0.19)"},
+                {"range": [85, 100], "color": "rgba(46,204,113,0.19)"},
             ],
             "threshold": {
                 "line": {"color": "#e74c3c", "width": 3},
@@ -164,9 +164,9 @@ def render_oee_gauges(overview: dict):
                     "axis": {"range": [0, 100], "tickwidth": 1},
                     "bar": {"color": colors[i]},
                     "steps": [
-                        {"range": [0, 60], "color": "#ff634720"},
-                        {"range": [60, target], "color": "#ffd70020"},
-                        {"range": [target, 100], "color": "#32cd3220"},
+                        {"range": [0, 60], "color": "rgba(255,99,71,0.12)"},
+                        {"range": [60, target], "color": "rgba(255,215,0,0.12)"},
+                        {"range": [target, 100], "color": "rgba(50,205,50,0.12)"},
                     ],
                     "threshold": {
                         "line": {"color": "#e74c3c", "width": 2},
