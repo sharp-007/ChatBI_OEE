@@ -15,25 +15,29 @@ def render_chart(chart_config: dict, data: dict):
     title = chart_config.get("title", "查询结果")
     x_field = chart_config.get("x_field", "")
     y_field = chart_config.get("y_field", "")
+    color_field = chart_config.get("color_field", "")
+    if color_field and color_field not in df.columns:
+        color_field = ""
 
     try:
         if chart_type == "bar":
-            _render_bar(df, x_field, y_field, title)
+            _render_bar(df, x_field, y_field, title, color_field)
         elif chart_type == "line":
-            _render_line(df, x_field, y_field, title)
+            _render_line(df, x_field, y_field, title, color_field)
         elif chart_type == "pie":
             _render_pie(df, x_field, y_field, title)
         elif chart_type == "gauge":
             _render_gauge(df, y_field, title)
         elif chart_type == "scatter":
-            _render_scatter(df, x_field, y_field, title)
+            _render_scatter(df, x_field, y_field, title, color_field)
         else:
             _render_table(df, title)
     except Exception:
         _render_table(df, title)
 
 
-def _render_bar(df: pd.DataFrame, x_field: str, y_field: str, title: str):
+def _render_bar(df: pd.DataFrame, x_field: str, y_field: str, title: str,
+                color_field: str = ""):
     y_fields = [f.strip() for f in y_field.split(",")]
     valid_y = [f for f in y_fields if f in df.columns]
 
@@ -42,8 +46,11 @@ def _render_bar(df: pd.DataFrame, x_field: str, y_field: str, title: str):
         return
 
     if len(valid_y) == 1:
+        color_col = color_field if color_field else x_field
         fig = px.bar(df, x=x_field, y=valid_y[0], title=title,
-                     color_discrete_sequence=px.colors.qualitative.Set2)
+                     color=color_col,
+                     color_discrete_sequence=px.colors.qualitative.Set2,
+                     text_auto=".1f")
     else:
         fig = go.Figure()
         colors = px.colors.qualitative.Set2
@@ -51,6 +58,7 @@ def _render_bar(df: pd.DataFrame, x_field: str, y_field: str, title: str):
             fig.add_trace(go.Bar(
                 name=col, x=df[x_field], y=df[col],
                 marker_color=colors[i % len(colors)],
+                text=df[col], texttemplate="%{text:.1f}", textposition="auto",
             ))
         fig.update_layout(title=title, barmode="group")
 
@@ -58,11 +66,13 @@ def _render_bar(df: pd.DataFrame, x_field: str, y_field: str, title: str):
         xaxis_tickangle=-45,
         height=450,
         margin=dict(l=40, r=40, t=60, b=80),
+        legend=dict(title=""),
     )
     st.plotly_chart(fig, use_container_width=True)
 
 
-def _render_line(df: pd.DataFrame, x_field: str, y_field: str, title: str):
+def _render_line(df: pd.DataFrame, x_field: str, y_field: str, title: str,
+                 color_field: str = ""):
     y_fields = [f.strip() for f in y_field.split(",")]
     valid_y = [f for f in y_fields if f in df.columns]
 
@@ -70,15 +80,24 @@ def _render_line(df: pd.DataFrame, x_field: str, y_field: str, title: str):
         _render_table(df, title)
         return
 
-    fig = go.Figure()
-    colors = px.colors.qualitative.Set2
-    for i, col in enumerate(valid_y):
-        fig.add_trace(go.Scatter(
-            x=df[x_field], y=df[col], mode="lines+markers",
-            name=col, line=dict(color=colors[i % len(colors)], width=2),
-        ))
+    if len(valid_y) == 1 and color_field:
+        fig = px.line(df, x=x_field, y=valid_y[0], color=color_field,
+                      title=title, markers=True,
+                      color_discrete_sequence=px.colors.qualitative.Set2)
+    else:
+        fig = go.Figure()
+        colors = px.colors.qualitative.Set2
+        for i, col in enumerate(valid_y):
+            fig.add_trace(go.Scatter(
+                x=df[x_field], y=df[col], mode="lines+markers",
+                name=col, line=dict(color=colors[i % len(colors)], width=2),
+            ))
 
-    fig.update_layout(title=title, height=450, margin=dict(l=40, r=40, t=60, b=60))
+    fig.update_layout(
+        title=title, height=450,
+        margin=dict(l=40, r=40, t=60, b=60),
+        legend=dict(title=""),
+    )
     st.plotly_chart(fig, use_container_width=True)
 
 
@@ -124,14 +143,16 @@ def _render_gauge(df: pd.DataFrame, y_field: str, title: str):
     st.plotly_chart(fig, use_container_width=True)
 
 
-def _render_scatter(df: pd.DataFrame, x_field: str, y_field: str, title: str):
+def _render_scatter(df: pd.DataFrame, x_field: str, y_field: str, title: str,
+                    color_field: str = ""):
     if x_field not in df.columns or y_field not in df.columns:
         _render_table(df, title)
         return
 
     fig = px.scatter(df, x=x_field, y=y_field, title=title,
-                     color_discrete_sequence=["#3498db"])
-    fig.update_layout(height=450)
+                     color=color_field if color_field else None,
+                     color_discrete_sequence=px.colors.qualitative.Set2)
+    fig.update_layout(height=450, legend=dict(title=""))
     st.plotly_chart(fig, use_container_width=True)
 
 

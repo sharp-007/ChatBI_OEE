@@ -47,10 +47,12 @@ CHART_RECOMMEND_PROMPT = """你是一个数据可视化专家。根据用户的�
 
 ## 输出格式
 只返回一个JSON对象，格式如下:
-{{"chart_type": "bar", "x_field": "列名", "y_field": "列名", "title": "图表标题"}}
+{{"chart_type": "bar", "x_field": "列名", "y_field": "列名", "color_field": "分类列名", "title": "图表标题"}}
 
-如果需要多个Y轴字段，用逗号分隔: "y_field": "列名1,列名2"
-如果是饼图: "x_field"为标签列, "y_field"为数值列
-如果是仪表盘: "x_field"为指标名, "y_field"为数值列
-如果是表格: x_field和y_field可为空字符串
+字段说明:
+- y_field: 如果需要多个Y轴字段，用逗号分隔，如 "列名1,列名2"
+- color_field: 用于按分类着色的列名（如车间、设备名称、产线等）。柱状图/折线图/散点图应尽量指定此字段以区分不同类别。如果无合适分类列或已有多个y_field，设为空字符串
+- 饼图: x_field为标签列, y_field为数值列, color_field为空字符串
+- 仪表盘: x_field为指标名, y_field为数值列, color_field为空字符串
+- 表格: x_field、y_field、color_field均为空字符串
 """

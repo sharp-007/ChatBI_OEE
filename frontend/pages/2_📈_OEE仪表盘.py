@@ -38,6 +38,13 @@ def fetch_api(endpoint: str, params: dict = None):
 
 with st.sidebar:
     st.subheader("📅 数据筛选")
+
+    production_line = st.selectbox(
+        "🏭 产线",
+        options=["全部", "A线", "B线", "C线", "D线", "E线", "F线"],
+        index=0,
+    )
+
     col1, col2 = st.columns(2)
     with col1:
         start_date = st.date_input(
@@ -66,13 +73,17 @@ with st.sidebar:
     st.divider()
     st.caption("Powered by Qwen + FastAPI")
 
-params = {"start_date": str(start_date), "end_date": str(end_date)}
+params = {
+    "start_date": str(start_date),
+    "end_date": str(end_date),
+    "production_line": "" if production_line == "全部" else production_line,
+}
 
 overview = fetch_api("/oee/overview", params)
 if overview is None:
     st.warning(
         "⚠️ 无法连接到后端API服务。请确保已启动 FastAPI 后端：\n\n"
-        "```\ncd ChatBI_OEE\npython -m backend.app.main\n```"
+        "```\npython -m backend.app.main\n```"
     )
     st.stop()
 
