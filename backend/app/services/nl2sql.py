@@ -22,8 +22,12 @@ class NL2SQLService:
         cleaned = re.sub(r"```sql\s*", "", raw)
         cleaned = re.sub(r"```\s*", "", cleaned)
         cleaned = cleaned.replace("≥", ">=").replace("≤", "<=").replace("≠", "!=")
+        cleaned = cleaned.replace("\uff1e\uff1d", ">=").replace("\uff1c\uff1d", "<=")
+        cleaned = cleaned.replace("\uff1e", ">").replace("\uff1c", "<")
         cleaned = cleaned.replace("\u2018", "'").replace("\u2019", "'")
         cleaned = cleaned.replace("\u201c", "'").replace("\u201d", "'")
+        cleaned = re.sub(r"[≧≩]", ">=", cleaned)
+        cleaned = re.sub(r"[≦≨]", "<=", cleaned)
         cleaned = cleaned.strip().rstrip(";") + ";"
         return cleaned
 

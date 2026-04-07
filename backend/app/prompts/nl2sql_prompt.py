@@ -16,6 +16,7 @@ NL2SQL_SYSTEM_PROMPT = """你是一个专业的工业数据分析SQL专家。你
 10. 结果集不超过1000行，必要时使用 LIMIT
 11. 对于聚合查询，适当使用 GROUP BY 和 ORDER BY
 12. 如果用户的问题模糊，做出合理推断并生成查询
+13. 【重要】MySQL不支持 IN (SELECT ... LIMIT n) 语法。如果子查询需要LIMIT，必须多套一层: WHERE col IN (SELECT col FROM (SELECT col FROM ... ORDER BY ... LIMIT n) AS tmp)
 
 ## 输出格式
 只返回纯SQL语句，不要包含任何解释文字、markdown格式或代码块标记。
