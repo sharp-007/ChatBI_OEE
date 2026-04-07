@@ -16,7 +16,6 @@ class NL2SQLService:
 
     def __init__(self):
         self.db_service = DatabaseService()
-        self.schema_info = DatabaseService.get_schema_info()
 
     def _clean_sql(self, raw: str) -> str:
         """清理LLM返回的SQL，去除markdown代码块等格式，修正非标准字符"""
@@ -68,7 +67,8 @@ class NL2SQLService:
     def text_to_sql(self, question: str,
                     history: list[dict] | None = None) -> str:
         """将自然语言问题转换为SQL，支持多轮上下文"""
-        system_prompt = NL2SQL_SYSTEM_PROMPT.format(schema=self.schema_info)
+        schema_info = DatabaseService.get_schema_info()
+        system_prompt = NL2SQL_SYSTEM_PROMPT.format(schema=schema_info)
         sql = llm_service.chat(system_prompt, question, history=history)
         return self._clean_sql(sql)
 

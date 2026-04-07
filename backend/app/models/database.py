@@ -1,6 +1,6 @@
 from sqlalchemy import (
-    create_engine, Column, Integer, String, Date, DateTime,
-    DECIMAL, Enum, ForeignKey, TIMESTAMP, text,
+    create_engine, Column, Integer, String, Date, DateTime, Text,
+    DECIMAL, Boolean, Enum, ForeignKey, TIMESTAMP, text,
 )
 from sqlalchemy.orm import declarative_base, sessionmaker, relationship
 from backend.app.config import settings
@@ -107,3 +107,22 @@ class DowntimeRecord(Base):
     created_at = Column(TIMESTAMP, server_default=text("CURRENT_TIMESTAMP"))
 
     equipment = relationship("Equipment", back_populates="downtime_records")
+
+
+class SchemaMetadata(Base):
+    __tablename__ = "schema_metadata"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    table_name = Column(String(100), nullable=False)
+    column_name = Column(String(100))
+    column_type = Column(String(100))
+    description = Column(String(500), nullable=False)
+    sample_values = Column(String(500))
+    business_rule = Column(Text)
+    is_important = Column(Boolean, default=True)
+    sort_order = Column(Integer, default=100)
+    created_at = Column(TIMESTAMP, server_default=text("CURRENT_TIMESTAMP"))
+    updated_at = Column(
+        TIMESTAMP,
+        server_default=text("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"),
+    )

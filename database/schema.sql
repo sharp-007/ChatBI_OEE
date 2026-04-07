@@ -4,11 +4,11 @@ SET NAMES utf8mb4;
 SET CHARACTER SET utf8mb4;
 
 -- 创建数据库
-CREATE DATABASE IF NOT EXISTS chatbi_oee
+CREATE DATABASE IF NOT EXISTS chatbi_oee_schema
     DEFAULT CHARACTER SET utf8mb4
     DEFAULT COLLATE utf8mb4_unicode_ci;
 
-USE chatbi_oee;
+USE chatbi_oee_schema;
 
 -- ============================================
 -- 1. 设备主数据表
@@ -101,7 +101,26 @@ CREATE TABLE IF NOT EXISTS downtime_record (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='停机记录表';
 
 -- ============================================
--- 6. OEE 日汇总视图
+-- 6. NL2SQL Schema元数据管理表
+-- ============================================
+CREATE TABLE IF NOT EXISTS schema_metadata (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    table_name VARCHAR(100) NOT NULL COMMENT '表/视图名, _global表示全局业务规则',
+    column_name VARCHAR(100) DEFAULT NULL COMMENT '字段名, NULL表示表级描述',
+    column_type VARCHAR(100) DEFAULT NULL COMMENT '字段类型, 如INT/VARCHAR(50)',
+    description VARCHAR(500) NOT NULL COMMENT '中文描述',
+    sample_values VARCHAR(500) DEFAULT NULL COMMENT '示例值/枚举值',
+    business_rule TEXT DEFAULT NULL COMMENT '业务规则/查询提示',
+    is_important BOOLEAN DEFAULT TRUE COMMENT '是否注入LLM Prompt(FALSE则不出现在Schema中)',
+    sort_order INT DEFAULT 100 COMMENT '排序权重(值越小越靠前)',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_table_name (table_name),
+    INDEX idx_important (is_important)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='NL2SQL Schema元数据管理表';
+
+-- ============================================
+-- 7. OEE 日汇总视图
 -- ============================================
 CREATE OR REPLACE VIEW oee_daily AS
 SELECT
