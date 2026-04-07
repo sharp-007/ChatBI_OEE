@@ -1,6 +1,8 @@
 import streamlit as st
 import requests
 import pandas as pd
+import plotly.express as px
+import plotly.graph_objects as go
 import os
 from datetime import date
 from dotenv import load_dotenv
@@ -159,17 +161,38 @@ if downtime_data:
         st.markdown("**设备停机时长排名**")
         if downtime_data.get("by_equipment"):
             df_dt = pd.DataFrame(downtime_data["by_equipment"])
-            import plotly.express as px
-            fig = px.bar(
-                df_dt, x="总停机时长_分钟", y="设备名称",
-                orientation="h", color="车间",
-                title="设备停机时长排名",
-                color_discrete_sequence=px.colors.qualitative.Set2,
-            )
+            df_dt = df_dt.sort_values("总停机时长_分钟", ascending=True)
+            palette = px.colors.qualitative.Set2
+            workshops = df_dt["车间"].unique().tolist()
+            color_map = {w: palette[i % len(palette)] for i, w in enumerate(workshops)}
+
+            fig = go.Figure()
+            shown_legend = set()
+            for _, row in df_dt.iterrows():
+                ws = row["车间"]
+                fig.add_trace(go.Bar(
+                    x=[row["总停机时长_分钟"]],
+                    y=[row["设备名称"]],
+                    orientation="h",
+                    marker_color=color_map[ws],
+                    name=ws,
+                    legendgroup=ws,
+                    showlegend=ws not in shown_legend,
+                    text=[f"{row['总停机时长_分钟']:.0f}"],
+                    textposition="auto",
+                ))
+                shown_legend.add(ws)
+
+            chart_height = max(360, len(df_dt) * 36)
             fig.update_layout(
-                height=400,
-                yaxis=dict(categoryorder="total ascending"),
+                title="设备停机时长排名",
+                barmode="stack",
+                height=chart_height,
+                bargap=0.2,
+                xaxis_title="停机时长 (分钟)",
+                yaxis=dict(type="category"),
                 margin=dict(l=120, r=20, t=40, b=40),
+                legend=dict(title="车间"),
             )
             st.plotly_chart(fig, use_container_width=True)
 
