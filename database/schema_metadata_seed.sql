@@ -2,7 +2,7 @@
 -- Schema 元数据种子数据
 -- 将原 db_service.py 中硬编码的 Schema 文本迁移到元数据表集中管理
 -- ============================================================
-USE chatbi_oee_schema;
+USE chatbi_oee;
 
 -- 清空旧数据（幂等执行）
 TRUNCATE TABLE schema_metadata;

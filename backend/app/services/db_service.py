@@ -125,7 +125,7 @@ class DatabaseService:
                         col_line += f" ({samples})"
                     tables[tname]["columns"].append(col_line)
 
-            parts = ["数据库名: chatbi_oee_schema\n包含以下表:"]
+            parts = ["数据库名: chatbi_oee\n包含以下表:"]
 
             sorted_tables = sorted(tables.items(), key=lambda x: x[1]["sort_order"])
             for idx, (tname, meta) in enumerate(sorted_tables, 1):
@@ -146,7 +146,7 @@ class DatabaseService:
     def _get_hardcoded_schema() -> str:
         """硬编码Schema（降级方案，当元数据表不可用时自动回退）"""
         return """
-数据库名: chatbi_oee_schema
+数据库名: chatbi_oee
 包含以下表:
 
 1. equipment (设备主数据表)

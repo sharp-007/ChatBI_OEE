@@ -4,11 +4,11 @@ SET NAMES utf8mb4;
 SET CHARACTER SET utf8mb4;
 
 -- 创建数据库
-CREATE DATABASE IF NOT EXISTS chatbi_oee_schema
+CREATE DATABASE IF NOT EXISTS chatbi_oee
     DEFAULT CHARACTER SET utf8mb4
     DEFAULT COLLATE utf8mb4_unicode_ci;
 
-USE chatbi_oee_schema;
+USE chatbi_oee;
 
 -- ============================================
 -- 1. 设备主数据表

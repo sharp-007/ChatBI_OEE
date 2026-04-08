@@ -50,7 +50,7 @@
 ## 项目结构
 
 ```
-ChatBI_OEE_Schema/
+ChatBI_OEE/
 ├── backend/                          # 后端服务
 │   ├── app/
 │   │   ├── main.py                   # FastAPI 入口
@@ -307,7 +307,7 @@ DB_HOST=localhost
 DB_PORT=3306
 DB_USER=root
 DB_PASSWORD=your_password_here
-DB_NAME=chatbi_oee_schema
+DB_NAME=chatbi_oee
 ```
 
 ### 5. 初始化数据库
