@@ -1,6 +1,7 @@
 # 项目忽略
 demo/
 docs/
+LICENSE
 
 # 环境变量
 .env
