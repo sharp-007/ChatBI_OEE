@@ -1,10 +1,36 @@
-# ChatBI OEE
+# ChatBI OEE — 智能制造 OEE 分析平台
 
-# 智能对话式 OEE 分析平台
+> **传统仪表盘 + AI 对话分析，智能对话式的OEE分析平台**
 
-基于 NL2SQL 的 **OEE（设备综合效率）** 对话式分析系统。用户通过自然语言提问，系统自动生成 SQL 查询并以图表展示结果。
+制造业的 OEE（Overall Equipment Effectiveness，设备综合效率）分析长期依赖固定报表和预设图表，业务人员难以灵活下钻和自由探索数据。ChatBI OEE 将 **传统 BI 仪表盘** 与 **基于自然语言的智能对话分析** 融合为一体：
 
-本项目聚焦于 **Schema 注入方案的工程实践**，采用 **元数据表集中管理（Level 3）** 策略，将表结构、字段语义、业务规则统一存储在 `schema_metadata` 表中，运行时动态构建 Prompt，兼顾可维护性与 NL2SQL 准确率。
+- **仪表盘模式** — 提供 OEE 概览、趋势分析、设备排名、停机分析、六大损失等经典可视化面板，支持产线筛选与时间范围切换，满足日常监控与管理汇报需求
+- **对话模式** — 用户以中文自然语言提问（如"哪台设备的停机时间最长？"），系统通过 NL2SQL 自动生成 SQL、执行查询、解读结果并推荐最佳图表，实现零门槛的数据探索
+
+在 NL2SQL 工程层面，本项目聚焦于 **Schema 注入方案的实践**，采用 **元数据表集中管理（Level 3）** 策略，将表结构、字段语义、业务规则统一存储在 `schema_metadata` 表中，运行时动态构建 Prompt，兼顾可维护性与 NL2SQL 准确率。
+
+## 功能特性
+
+### 对话式智能分析
+
+- **自然语言查询** — 输入中文问题，AI 自动生成 SQL 并执行，无需了解数据库结构
+- **多轮对话记忆** — 支持最近 5 轮上下文追问，如"上个月呢？""按车间拆分"
+- **智能图表推荐** — LLM 根据数据特征自动选择最佳图表类型，支持颜色分类图例
+- **结果解读** — AI 对查询结果进行业务解读，给出数据洞察而非仅展示数字
+
+### OEE 可视化仪表盘
+
+- **四大指标概览** — OEE、可用率、性能率、质量率仪表盘，一目了然
+- **趋势分析** — 支持按天/周/月聚合，世界级 OEE 85% 达标线标注
+- **设备排名 & 车间对比** — 横向对比设备效率与车间表现
+- **停机分析** — 停机原因分布饼图 + 设备停机时长排名
+- **六大损失** — 可用性/性能/质量三维度损失量化
+
+### 工程能力
+
+- **SQL 安全校验** — 白名单 + 黑名单双重防护，仅允许 SELECT 查询
+- **Schema 元数据管理** — 表结构语义集中维护，支持动态更新无需重启
+- **产线筛选** — 仪表盘全局产线过滤，按需聚焦分析
 
 ## 技术栈
 
@@ -16,6 +42,43 @@
 | LLM      | 通义千问 (Qwen) | DashScope API，NL2SQL + 结果解读 + 图表推荐 |
 | ORM      | SQLAlchemy      | 数据库连接池 + 模型定义                     |
 | 图表     | Plotly          | 6 种图表类型自动渲染                        |
+
+## 项目结构
+
+```
+ChatBI_OEE_Schema/
+├── backend/                          # 后端服务
+│   ├── app/
+│   │   ├── main.py                   # FastAPI 入口
+│   │   ├── config.py                 # 环境变量配置
+│   │   ├── models/
+│   │   │   └── database.py           # ORM 模型 (含 SchemaMetadata)
+│   │   ├── services/
+│   │   │   ├── llm_service.py        # 通义千问 API 封装
+│   │   │   ├── nl2sql.py             # NL2SQL 核心引擎
+│   │   │   ├── db_service.py         # SQL 执行 + Schema 动态构建
+│   │   │   └── oee_calculator.py     # OEE 预定义查询
+│   │   ├── api/
+│   │   │   └── routes.py             # 7 个 REST API 端点
+│   │   └── prompts/
+│   │       └── nl2sql_prompt.py      # 三套 Prompt 模板
+│   └── requirements.txt
+├── frontend/                         # 前端应用
+│   ├── app.py                        # Streamlit 主页
+│   ├── pages/
+│   │   ├── 1_💬_对话查询.py           # 对话查询页面
+│   │   └── 2_📈_OEE仪表盘.py         # OEE 仪表盘页面
+│   ├── components/
+│   │   ├── charts.py                 # Plotly 图表组件 (6种)
+│   │   └── sidebar.py                # 侧边栏组件
+│   └── requirements.txt
+├── database/
+│   ├── schema.sql                    # 建表 + 元数据表 + OEE 视图
+│   ├── seed_data.sql                 # 3 个月模拟生产数据
+│   └── schema_metadata_seed.sql      # Schema 元数据种子数据
+├── .env.example                      # 环境变量模板
+└── README.md
+```
 
 ## 系统架构
 
@@ -92,60 +155,72 @@ graph LR
     style RENDER fill:#e8f5e9,stroke:#2e7d32
 ```
 
-## 功能特性
+### 数据库设计
 
-- **自然语言查询** — 输入中文问题，AI 自动生成 SQL 并执行
-- **多轮对话记忆** — 支持最近 5 轮上下文追问
-- **智能图表推荐** — LLM 根据数据特征自动选择最佳图表类型
-- **OEE 仪表盘** — 实时概览、趋势分析、设备排名、停机分析、六大损失
-- **SQL 安全校验** — 白名单 + 黑名单双重防护，仅允许 SELECT
-- **Schema 元数据管理** — 表结构语义集中维护，支持动态更新无需重启
+#### ER 关系
 
-## 项目结构
+```mermaid
+graph LR
+    E["equipment\n设备主数据"]
+    P["product\n产品主数据"]
+    PP["production_plan\n生产计划"]
+    PR["production_record\n生产记录"]
+    DR["downtime_record\n停机记录"]
+    OD[/"oee_daily\nOEE日汇总视图"/]
+    SM["schema_metadata\n元数据管理"]
 
-```
-ChatBI_OEE_Schema/
-├── backend/                          # 后端服务
-│   ├── app/
-│   │   ├── main.py                   # FastAPI 入口
-│   │   ├── config.py                 # 环境变量配置
-│   │   ├── models/
-│   │   │   └── database.py           # ORM 模型 (含 SchemaMetadata)
-│   │   ├── services/
-│   │   │   ├── llm_service.py        # 通义千问 API 封装
-│   │   │   ├── nl2sql.py             # NL2SQL 核心引擎
-│   │   │   ├── db_service.py         # SQL 执行 + Schema 动态构建
-│   │   │   └── oee_calculator.py     # OEE 预定义查询
-│   │   ├── api/
-│   │   │   └── routes.py             # 7 个 REST API 端点
-│   │   └── prompts/
-│   │       └── nl2sql_prompt.py      # 三套 Prompt 模板
-│   └── requirements.txt
-├── frontend/                         # 前端应用
-│   ├── app.py                        # Streamlit 主页
-│   ├── pages/
-│   │   ├── 1_💬_对话查询.py           # 对话查询页面
-│   │   └── 2_📈_OEE仪表盘.py         # OEE 仪表盘页面
-│   ├── components/
-│   │   ├── charts.py                 # Plotly 图表组件 (6种)
-│   │   └── sidebar.py                # 侧边栏组件
-│   └── requirements.txt
-├── database/
-│   ├── schema.sql                    # 建表 + 元数据表 + OEE 视图
-│   ├── seed_data.sql                 # 3 个月模拟生产数据
-│   └── schema_metadata_seed.sql      # Schema 元数据种子数据
-├── docs/
-│   ├── 项目架构设计.md
-│   ├── 项目实现计划.md
-│   ├── NL2SQL Schema注入方案演进.md   # 5 级方案对比与演进记录
-│   └── 面试准备.md
-├── .env.example                      # 环境变量模板
-└── README.md
+    E -->|1:N| PR
+    E -->|1:N| DR
+    E -->|1:N| PP
+    P -->|1:N| PR
+    P -->|1:N| PP
+    PR -.->|JOIN汇总| OD
+
+    style E fill:#e3f2fd,stroke:#1565c0,stroke-width:2px
+    style P fill:#e3f2fd,stroke:#1565c0,stroke-width:2px
+    style PP fill:#fff3e0,stroke:#ff9800
+    style PR fill:#fff3e0,stroke:#ff9800
+    style DR fill:#fff3e0,stroke:#ff9800
+    style OD fill:#e8f5e9,stroke:#4caf50,stroke-width:2px
+    style SM fill:#fce4ec,stroke:#e91e63
 ```
 
-## Schema 注入架构
+#### 表清单
 
-本项目的核心设计是 **元数据表驱动的 Schema 注入**，取代传统的硬编码方式：
+| 表名                  | 类型   | 用途                                                  |
+| --------------------- | ------ | ----------------------------------------------------- |
+| `equipment`         | 主数据 | 设备编号、名称、类型、车间、产线、理论节拍            |
+| `product`           | 主数据 | 产品编号、名称、类别                                  |
+| `production_plan`   | 事务   | 生产计划（日期、班次、计划产量）                      |
+| `production_record` | 事务   | 生产记录（实际运行时长、产出、合格数、不良数）        |
+| `downtime_record`   | 事务   | 停机事件（类型、分类、原因、时长）                    |
+| `oee_daily`         | 视图   | 自动 JOIN 设备+产品，实时计算可用率/性能率/质量率/OEE |
+| `schema_metadata`   | 元数据 | NL2SQL Schema 注入的语义标注管理                      |
+
+### Schema 注入方案
+
+本项目实践了 NL2SQL Schema 注入从简单到复杂的演进路径。当前采用 **Level 3（元数据表标注）**，后续可平滑升级到 Level 4（RAG 检索）以支持更大规模的数据库。
+
+```mermaid
+graph LR
+    L1["<b>Level 1</b><br/>硬编码文本<br/><small>10张表以下</small>"]
+    L2["<b>Level 2</b><br/>自动提取DDL<br/><small>快速原型</small>"]
+    L3["<b>Level 3</b><br/>元数据表标注<br/><small>✅ 本项目当前</small>"]
+    L4["<b>Level 4</b><br/>动态Schema检索<br/><small>50+张表</small>"]
+    L5["<b>Level 5</b><br/>知识图谱/语义层<br/><small>超大型系统</small>"]
+
+    L1 --> L2 --> L3 --> L4 --> L5
+
+    style L3 fill:#c8e6c9,stroke:#2e7d32,stroke-width:3px
+    style L1 fill:#f5f5f5,stroke:#9e9e9e
+    style L2 fill:#f5f5f5,stroke:#9e9e9e
+    style L4 fill:#e3f2fd,stroke:#1565c0,stroke-dasharray:5 5
+    style L5 fill:#e3f2fd,stroke:#1565c0,stroke-dasharray:5 5
+```
+
+#### Schema 注入架构
+
+本项目的核心设计是 **元数据表驱动的 Schema 注入**，取代传统的硬编码方式。
 
 ```mermaid
 graph TB
@@ -168,7 +243,7 @@ graph TB
     style LLM fill:#fce4ec,stroke:#e91e63
 ```
 
-### 元数据表结构
+#### 元数据表结构
 
 | 字段              | 说明                                    |
 | ----------------- | --------------------------------------- |
@@ -181,7 +256,7 @@ graph TB
 | `is_important`  | 是否注入 Prompt（控制 Schema 精简度）   |
 | `sort_order`    | 展示排序权重                            |
 
-### 日常维护
+#### 日常维护
 
 ```sql
 -- 新增字段
@@ -273,7 +348,7 @@ streamlit run frontend/app.py
 
 前端运行在 `http://localhost:8501`。
 
-## API 接口
+### 8. API 接口
 
 | 接口                              | 方法 | 说明                         |
 | --------------------------------- | ---- | ---------------------------- |
@@ -285,7 +360,7 @@ streamlit run frontend/app.py
 | `/api/v1/oee/downtime-analysis` | GET  | 停机分类分析                 |
 | `/api/v1/oee/loss-analysis`     | GET  | 六大损失分析                 |
 
-## 自然语言查询示例
+### 9. 自然语言查询示例
 
 ```
 "本月OEE最高的设备是哪台？"
@@ -297,49 +372,7 @@ streamlit run frontend/app.py
 "生产计划完成率最高的产品是哪个？"
 ```
 
-## 数据库设计
-
-### ER 关系
-
-```mermaid
-graph LR
-    E["equipment\n设备主数据"]
-    P["product\n产品主数据"]
-    PP["production_plan\n生产计划"]
-    PR["production_record\n生产记录"]
-    DR["downtime_record\n停机记录"]
-    OD[/"oee_daily\nOEE日汇总视图"/]
-    SM["schema_metadata\n元数据管理"]
-
-    E -->|1:N| PR
-    E -->|1:N| DR
-    E -->|1:N| PP
-    P -->|1:N| PR
-    P -->|1:N| PP
-    PR -.->|JOIN汇总| OD
-
-    style E fill:#e3f2fd,stroke:#1565c0,stroke-width:2px
-    style P fill:#e3f2fd,stroke:#1565c0,stroke-width:2px
-    style PP fill:#fff3e0,stroke:#ff9800
-    style PR fill:#fff3e0,stroke:#ff9800
-    style DR fill:#fff3e0,stroke:#ff9800
-    style OD fill:#e8f5e9,stroke:#4caf50,stroke-width:2px
-    style SM fill:#fce4ec,stroke:#e91e63
-```
-
-### 表清单
-
-| 表名                  | 类型   | 用途                                                  |
-| --------------------- | ------ | ----------------------------------------------------- |
-| `equipment`         | 主数据 | 设备编号、名称、类型、车间、产线、理论节拍            |
-| `product`           | 主数据 | 产品编号、名称、类别                                  |
-| `production_plan`   | 事务   | 生产计划（日期、班次、计划产量）                      |
-| `production_record` | 事务   | 生产记录（实际运行时长、产出、合格数、不良数）        |
-| `downtime_record`   | 事务   | 停机事件（类型、分类、原因、时长）                    |
-| `oee_daily`         | 视图   | 自动 JOIN 设备+产品，实时计算可用率/性能率/质量率/OEE |
-| `schema_metadata`   | 元数据 | NL2SQL Schema 注入的语义标注管理                      |
-
-## OEE 计算公式
+### 10. OEE 计算公式
 
 ```
 OEE = 可用率 × 性能率 × 质量率
@@ -356,35 +389,12 @@ OEE = 可用率 × 性能率 × 质量率
 | 性能率 | >= 95%     | —     | —     |
 | 质量率 | >= 99%     | —     | —     |
 
-## Schema 注入方案演进
-
-本项目实践了 NL2SQL Schema 注入从简单到复杂的演进路径，详见 [`docs/NL2SQL Schema注入方案演进.md`](docs/NL2SQL%20Schema注入方案演进.md)：
-
-```mermaid
-graph LR
-    L1["<b>Level 1</b><br/>硬编码文本<br/><small>10张表以下</small>"]
-    L2["<b>Level 2</b><br/>自动提取DDL<br/><small>快速原型</small>"]
-    L3["<b>Level 3</b><br/>元数据表标注<br/><small>✅ 本项目当前</small>"]
-    L4["<b>Level 4</b><br/>动态Schema检索<br/><small>50+张表</small>"]
-    L5["<b>Level 5</b><br/>知识图谱/语义层<br/><small>超大型系统</small>"]
-
-    L1 --> L2 --> L3 --> L4 --> L5
-
-    style L3 fill:#c8e6c9,stroke:#2e7d32,stroke-width:3px
-    style L1 fill:#f5f5f5,stroke:#9e9e9e
-    style L2 fill:#f5f5f5,stroke:#9e9e9e
-    style L4 fill:#e3f2fd,stroke:#1565c0,stroke-dasharray:5 5
-    style L5 fill:#e3f2fd,stroke:#1565c0,stroke-dasharray:5 5
-```
-
-当前采用 **Level 3（元数据表标注）**，后续可平滑升级到 Level 4（RAG 检索）以支持更大规模的数据库。
-
 ## 作者
 
 **Joyce Pan (潘姣)**
 
 - GitHub：[@sharp-007](https://github.com/sharp-007)
-- Email：pj0072014@126.com
+- Email：panjiao007@126.com
 - LinkedIn：[joyce-pan-549596138](https://www.linkedin.com/in/joyce-pan-549596138)
 
 如有任何问题或建议，欢迎通过 Issue 交流。
