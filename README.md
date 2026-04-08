@@ -13,6 +13,8 @@
 
 [![Video Demo](https://img.youtube.com/vi/uN0ACWdIo_w/maxresdefault.jpg)](https://www.youtube.com/watch?v=uN0ACWdIo_w)
 
+[点击观看完整演示视频](https://www.youtube.com/watch?v=uN0ACWdIo_w)
+
 ## 功能特性
 
 ### 对话式智能分析
