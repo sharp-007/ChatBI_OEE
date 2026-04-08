@@ -32,20 +32,7 @@ INSERT INTO schema_metadata (table_name, column_name, column_type, description, 
 ('product', 'product_category', 'VARCHAR(50)',   '产品类别',      NULL, NULL, TRUE, 20);
 
 -- ============================================
--- 3. production_plan（生产计划表）  sort_order=25
--- ============================================
-INSERT INTO schema_metadata (table_name, column_name, column_type, description, sample_values, business_rule, is_important, sort_order) VALUES
-('production_plan', NULL,                       NULL,           '生产计划表',              NULL, NULL, TRUE, 25),
-('production_plan', 'id',                       'INT',          '主键',                   NULL, NULL, TRUE, 25),
-('production_plan', 'plan_date',                'DATE',         '计划日期',                NULL, NULL, TRUE, 25),
-('production_plan', 'shift',                    'VARCHAR(20)',  '班次',                    '早班/中班/晚班', NULL, TRUE, 25),
-('production_plan', 'equipment_id',             'INT',          '设备ID',                  NULL, '关联 equipment.id', TRUE, 25),
-('production_plan', 'product_id',               'INT',          '产品ID',                  NULL, '关联 product.id', TRUE, 25),
-('production_plan', 'planned_quantity',          'INT',          '计划产量',                NULL, NULL, TRUE, 25),
-('production_plan', 'planned_duration_minutes',  'INT',          '计划生产时长(分钟)',       NULL, NULL, TRUE, 25);
-
--- ============================================
--- 4. production_record（生产记录表）  sort_order=30
+-- 3. production_record（生产记录表）  sort_order=30
 -- ============================================
 INSERT INTO schema_metadata (table_name, column_name, column_type, description, sample_values, business_rule, is_important, sort_order) VALUES
 ('production_record', NULL,                       NULL,            '生产记录表',          NULL, NULL, TRUE, 30),
@@ -62,7 +49,7 @@ INSERT INTO schema_metadata (table_name, column_name, column_type, description, 
 ('production_record', 'ideal_cycle_time',          'DECIMAL(10,2)', '理论节拍(秒/件)',     NULL, NULL, TRUE, 30);
 
 -- ============================================
--- 5. downtime_record（停机记录表）  sort_order=40
+-- 4. downtime_record（停机记录表）  sort_order=40
 -- ============================================
 INSERT INTO schema_metadata (table_name, column_name, column_type, description, sample_values, business_rule, is_important, sort_order) VALUES
 ('downtime_record', NULL,                 NULL,                                  '停机记录表',  NULL, NULL, TRUE, 40),
@@ -78,7 +65,7 @@ INSERT INTO schema_metadata (table_name, column_name, column_type, description, 
 ('downtime_record', 'duration_minutes',   'DECIMAL(10,2)',                       '停机时长(分钟)', NULL, NULL, TRUE, 40);
 
 -- ============================================
--- 6. oee_daily（OEE日汇总视图）  sort_order=50
+-- 5. oee_daily（OEE日汇总视图）  sort_order=50
 -- ============================================
 INSERT INTO schema_metadata (table_name, column_name, column_type, description, sample_values, business_rule, is_important, sort_order) VALUES
 ('oee_daily', NULL,                       NULL,            'OEE日汇总视图, 已JOIN了 equipment 和 product 表, 直接查询即可, 无需再JOIN这两张表', NULL, NULL, TRUE, 50),
@@ -101,7 +88,7 @@ INSERT INTO schema_metadata (table_name, column_name, column_type, description, 
 ('oee_daily', 'oee',                      'DECIMAL',       'OEE(%)',         NULL, NULL, TRUE, 50);
 
 -- ============================================
--- 7. 全局业务规则  sort_order=900+
+-- 6. 全局业务规则  sort_order=900+
 -- ============================================
 INSERT INTO schema_metadata (table_name, column_name, column_type, description, sample_values, business_rule, is_important, sort_order) VALUES
 ('_global', 'oee_formula', NULL, 'OEE计算公式',  NULL,

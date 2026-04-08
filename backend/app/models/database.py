@@ -58,19 +58,6 @@ class Product(Base):
     production_records = relationship("ProductionRecord", back_populates="product")
 
 
-class ProductionPlan(Base):
-    __tablename__ = "production_plan"
-
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    plan_date = Column(Date, nullable=False)
-    shift = Column(String(20), nullable=False)
-    equipment_id = Column(Integer, ForeignKey("equipment.id"), nullable=False)
-    product_id = Column(Integer, ForeignKey("product.id"), nullable=False)
-    planned_quantity = Column(Integer, nullable=False)
-    planned_duration_minutes = Column(Integer, nullable=False)
-    created_at = Column(TIMESTAMP, server_default=text("CURRENT_TIMESTAMP"))
-
-
 class ProductionRecord(Base):
     __tablename__ = "production_record"
 

@@ -167,7 +167,6 @@ graph LR
 graph LR
     E["equipment\n设备主数据"]
     P["product\n产品主数据"]
-    PP["production_plan\n生产计划"]
     PR["production_record\n生产记录"]
     DR["downtime_record\n停机记录"]
     OD[/"oee_daily\nOEE日汇总视图"/]
@@ -175,14 +174,11 @@ graph LR
 
     E -->|1:N| PR
     E -->|1:N| DR
-    E -->|1:N| PP
     P -->|1:N| PR
-    P -->|1:N| PP
     PR -.->|JOIN汇总| OD
 
     style E fill:#e3f2fd,stroke:#1565c0,stroke-width:2px
     style P fill:#e3f2fd,stroke:#1565c0,stroke-width:2px
-    style PP fill:#fff3e0,stroke:#ff9800
     style PR fill:#fff3e0,stroke:#ff9800
     style DR fill:#fff3e0,stroke:#ff9800
     style OD fill:#e8f5e9,stroke:#4caf50,stroke-width:2px
@@ -195,7 +191,6 @@ graph LR
 | --------------------- | ------ | ----------------------------------------------------- |
 | `equipment`         | 主数据 | 设备编号、名称、类型、车间、产线、理论节拍            |
 | `product`           | 主数据 | 产品编号、名称、类别                                  |
-| `production_plan`   | 事务   | 生产计划（日期、班次、计划产量）                      |
 | `production_record` | 事务   | 生产记录（实际运行时长、产出、合格数、不良数）        |
 | `downtime_record`   | 事务   | 停机事件（类型、分类、原因、时长）                    |
 | `oee_daily`         | 视图   | 自动 JOIN 设备+产品，实时计算可用率/性能率/质量率/OEE |
@@ -271,7 +266,7 @@ VALUES ('equipment', 'new_field', 'VARCHAR(50)', '新字段描述', 10);
 UPDATE schema_metadata SET description='更新后的描述' WHERE table_name='equipment' AND column_name='workshop';
 
 -- 隐藏字段（不注入 Prompt）
-UPDATE schema_metadata SET is_important=FALSE WHERE table_name='production_plan' AND column_name='id';
+UPDATE schema_metadata SET is_important=FALSE WHERE table_name='downtime_record' AND column_name='id';
 ```
 
 修改后等待缓存过期（5 分钟）或重启服务即可生效。

@@ -40,25 +40,7 @@ CREATE TABLE IF NOT EXISTS product (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='产品主数据表';
 
 -- ============================================
--- 3. 生产计划表
--- ============================================
-CREATE TABLE IF NOT EXISTS production_plan (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    plan_date DATE NOT NULL COMMENT '计划日期',
-    shift VARCHAR(20) NOT NULL COMMENT '班次(早班/中班/晚班)',
-    equipment_id INT NOT NULL COMMENT '设备ID',
-    product_id INT NOT NULL COMMENT '产品ID',
-    planned_quantity INT NOT NULL COMMENT '计划产量',
-    planned_duration_minutes INT NOT NULL COMMENT '计划生产时长(分钟)',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (equipment_id) REFERENCES equipment(id),
-    FOREIGN KEY (product_id) REFERENCES product(id),
-    INDEX idx_plan_date (plan_date),
-    INDEX idx_equipment (equipment_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='生产计划表';
-
--- ============================================
--- 4. 生产记录表
+-- 3. 生产记录表
 -- ============================================
 CREATE TABLE IF NOT EXISTS production_record (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -80,7 +62,7 @@ CREATE TABLE IF NOT EXISTS production_record (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='生产记录表';
 
 -- ============================================
--- 5. 停机记录表
+-- 4. 停机记录表
 -- ============================================
 CREATE TABLE IF NOT EXISTS downtime_record (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -101,7 +83,7 @@ CREATE TABLE IF NOT EXISTS downtime_record (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='停机记录表';
 
 -- ============================================
--- 6. NL2SQL Schema元数据管理表
+-- 5. NL2SQL Schema元数据管理表
 -- ============================================
 CREATE TABLE IF NOT EXISTS schema_metadata (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -120,7 +102,7 @@ CREATE TABLE IF NOT EXISTS schema_metadata (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='NL2SQL Schema元数据管理表';
 
 -- ============================================
--- 7. OEE 日汇总视图
+-- 6. OEE 日汇总视图
 -- ============================================
 CREATE OR REPLACE VIEW oee_daily AS
 SELECT
